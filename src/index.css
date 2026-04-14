@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add to your global CSS or Tailwind config */
+.btn-primary {
+  @apply w-full py-3 rounded-lg text-white font-semibold transition;
+  @apply bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg;
+}
+
+.input-field {
+  @apply w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
+  @apply transition duration-200 ease-in-out;
+}
+
+body {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.card {
+  @apply bg-white p-5 rounded-xl shadow;
+}
+
+.btn {
+  @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700;
+}
+
+.input {
+  @apply border p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400;
+}
+@layer components {
+  .btn {
+    @apply px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition;
+  }
+
+  .card {
+    @apply bg-white p-5 rounded-xl shadow;
+  }
+
+  .input {
+    @apply w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400;
+  }
+}
