@@ -2,7 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import API from "../api/api";
 
-const socket = io(process.env.REACT_APP_API_URL || "http://localhost:5000");
+const socket = io(
+  process.env.REACT_APP_SOCKET_URL ||
+    "https://rentwise-backend-5ac6.onrender.com",
+  {
+    transports: ["polling"], // 🔥 IMPORTANT FIX
+  },
+);
 
 function Chat() {
   const [message, setMessage] = useState("");
