@@ -6,8 +6,18 @@ function CreateRequest() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [urgency, setUrgency] = useState("Low");
-  const [files, setFiles] = useState([]); // ✅ NEW
+  const [files, setFiles] = useState([]);
   const [lease, setLease] = useState(null);
+
+  // ✅ IMAGE HELPER (GLOBAL FIX)
+  const getImageUrl = (path) => {
+    if (!path)
+      return "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d";
+
+    if (path.startsWith("http")) return path;
+
+    return `${process.env.REACT_APP_API_URL}/${path}`;
+  };
 
   useEffect(() => {
     fetchData();
@@ -16,12 +26,15 @@ function CreateRequest() {
   const fetchData = async () => {
     try {
       const leaseRes = await API.get("/leases/my");
-      setLease(leaseRes.data);
+      const leaseData = leaseRes.data.data || leaseRes.data;
 
-      const res = await API.get(
-        `/maintenance/my?lease_id=${leaseRes.data._id}`,
-      );
-      setRequests(res.data || []);
+      if (!leaseData?._id) return;
+
+      setLease(leaseData);
+
+      const res = await API.get(`/maintenance/my?lease_id=${leaseData._id}`);
+
+      setRequests(res.data.data || res.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -32,7 +45,7 @@ function CreateRequest() {
 
     try {
       const res = await API.get(`/maintenance/my?lease_id=${lease._id}`);
-      setRequests(res.data || []);
+      setRequests(res.data.data || res.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -45,7 +58,6 @@ function CreateRequest() {
     }
 
     try {
-      // ✅ FORM DATA FOR FILE UPLOAD
       const formData = new FormData();
       formData.append("lease_id", lease._id);
       formData.append("title", title);
@@ -53,7 +65,7 @@ function CreateRequest() {
       formData.append("urgency", urgency);
 
       for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]); // must match backend
+        formData.append("files", files[i]);
       }
 
       await API.post("/maintenance", formData, {
@@ -80,7 +92,7 @@ function CreateRequest() {
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen space-y-8">
-      {/* 🔥 HEADER */}
+      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold">Maintenance Requests</h1>
         <p className="text-gray-500 text-sm">
@@ -88,7 +100,7 @@ function CreateRequest() {
         </p>
       </div>
 
-      {/* 📊 STATS */}
+      {/* STATS */}
       <div className="grid grid-cols-3 gap-6">
         <div className="bg-white p-5 rounded-xl shadow border">
           <p className="text-gray-500 text-sm">Total</p>
@@ -106,9 +118,9 @@ function CreateRequest() {
         </div>
       </div>
 
-      {/* 🔥 MAIN GRID */}
+      {/* MAIN GRID */}
       <div className="grid grid-cols-3 gap-6">
-        {/* 🔹 LEFT: REQUEST LIST */}
+        {/* LEFT */}
         <div className="col-span-2 space-y-4">
           <h3 className="text-lg font-semibold">Recent Requests</h3>
 
@@ -158,13 +170,17 @@ function CreateRequest() {
                   </span>
                 </div>
 
-                {/* ✅ SHOW IMAGES */}
+                {/* ✅ FIXED IMAGE DISPLAY */}
                 {r.files?.length > 0 && (
                   <div className="flex gap-2 mt-2 flex-wrap">
                     {r.files.map((f, i) => (
                       <img
                         key={i}
-                        src={`${process.env.REACT_APP_API_URL}/${f}`}
+                        src={getImageUrl(f)}
+                        onError={(e) => {
+                          e.target.src =
+                            "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d";
+                        }}
                         alt="issue"
                         className="w-20 h-20 object-cover rounded-lg border"
                       />
@@ -176,7 +192,7 @@ function CreateRequest() {
           )}
         </div>
 
-        {/* 🔹 RIGHT: CREATE FORM */}
+        {/* RIGHT FORM */}
         <div className="bg-white p-6 rounded-xl shadow space-y-4">
           <h3 className="text-lg font-semibold">Create Request</h3>
 
@@ -204,7 +220,6 @@ function CreateRequest() {
             <option>High</option>
           </select>
 
-          {/* ✅ FILE INPUT */}
           <input
             type="file"
             multiple

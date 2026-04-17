@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
 import { Home, CreditCard, Wrench, FileText } from "lucide-react";
+import { getImageUrl } from "../utils/imageHelper"; // ✅ USE GLOBAL
 
 function TenantDashboard() {
   const [requests, setRequests] = useState([]);
@@ -18,18 +19,31 @@ function TenantDashboard() {
   const fetchData = async () => {
     try {
       const leaseRes = await API.get("/leases/my");
-      setLease(leaseRes.data);
+      const leaseData = leaseRes.data.data || leaseRes.data;
 
-      const reqRes = await API.get(
-        `/maintenance/my?lease_id=${leaseRes.data._id}`,
-      );
-      setRequests(reqRes.data);
+      if (!leaseData?._id) return;
 
-      const payRes = await API.get(`/payments/${leaseRes.data._id}`);
-      setPayments(payRes.data);
+      setLease(leaseData);
+
+      const reqRes = await API.get(`/maintenance/my?lease_id=${leaseData._id}`);
+      setRequests(reqRes.data.data || reqRes.data || []);
+
+      const payRes = await API.get(`/payments/${leaseData._id}`);
+      setPayments(payRes.data.data || payRes.data || []);
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const isPaidThisMonth = () => {
+    const now = new Date();
+
+    return payments.some((p) => {
+      const d = new Date(p.createdAt);
+      return (
+        d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      );
+    });
   };
 
   const handlePayment = async () => {
@@ -42,7 +56,7 @@ function TenantDashboard() {
       });
 
       fetchData();
-    } catch (err) {
+    } catch {
       alert("Payment failed");
     } finally {
       setPaying(false);
@@ -55,205 +69,171 @@ function TenantDashboard() {
         <h2 className="text-2xl font-semibold text-gray-700">
           No Lease Assigned
         </h2>
-        <p className="text-gray-500 mt-2">Please contact your landlord.</p>
+        <p className="text-gray-500 mt-2">Contact your landlord</p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen space-y-8">
+    <div className="p-6 md:p-10 bg-gray-100 min-h-screen space-y-8">
       {/* 🔥 HEADER */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-            <Home size={28} /> Tenant Dashboard
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Manage rent, requests & lease details
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Home /> Dashboard
+        </h1>
 
         <button
           onClick={() => navigate("/chat")}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:scale-105 transition"
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
         >
           Chat
         </button>
       </div>
 
-      {/* 📊 STATS */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-          <p className="text-gray-500 text-sm">Monthly Rent</p>
-          <h2 className="text-2xl font-bold mt-2 text-indigo-600">
-            ₹ {lease.rent_amount}
-          </h2>
-        </div>
+      {/* 🏠 PROPERTY HERO */}
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
+        <img
+          src={getImageUrl(lease.property_id?.coverImage)} // ✅ FIXED
+          alt="property"
+          className="w-full h-64 object-cover"
+        />
 
-        <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-          <p className="text-gray-500 text-sm">Requests</p>
-          <h2 className="text-2xl font-bold mt-2 text-blue-600">
-            {requests.length}
-          </h2>
-        </div>
+        <div className="p-6">
+          <h2 className="text-2xl font-bold">{lease.property_id?.title}</h2>
 
-        <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-          <p className="text-gray-500 text-sm">Payments</p>
-          <h2 className="text-2xl font-bold mt-2 text-green-600">
-            {payments.length}
-          </h2>
+          <p className="text-gray-500">📍 {lease.property_id?.address}</p>
+
+          <p className="text-indigo-600 font-bold text-xl mt-2">
+            ₹ {lease.rent_amount} / month
+          </p>
         </div>
       </div>
 
-      {/* 📄 LEASE INFO */}
+      {/* 📊 STATS */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card title="Monthly Rent" value={`₹ ${lease.rent_amount}`} />
+
+        <Card title="Requests" value={requests.length} />
+
+        <Card
+          title="Payment Status"
+          value={isPaidThisMonth() ? "Paid ✅" : "Due ❌"}
+        />
+      </div>
+
+      {/* 📄 LEASE */}
       <div className="bg-white p-6 rounded-2xl shadow">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <FileText size={18} /> Lease Details
+        <h3 className="font-semibold text-lg mb-4 flex gap-2">
+          <FileText /> Lease
         </h3>
 
-        <div className="grid grid-cols-2 gap-6 text-sm">
-          <div>
-            <p className="text-gray-500">Property</p>
-            <p className="font-medium text-gray-800">
-              {lease.property_id?.address || "N/A"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500">Rent</p>
-            <p className="font-medium text-gray-800">₹ {lease.rent_amount}</p>
-          </div>
-
-          <div className="col-span-2">
-            <p className="text-gray-500">Lease Document</p>
-            {lease.lease_document_url ? (
-              <a
-                href={`${process.env.REACT_APP_API_URL}/${lease.lease_document_url}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                View PDF
-              </a>
-            ) : (
-              <p className="text-gray-400">No document uploaded</p>
-            )}
-          </div>
-        </div>
+        {lease.lease_document_url ? (
+          <a
+            href={getImageUrl(lease.lease_document_url)}
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-600 underline"
+          >
+            View Lease Document
+          </a>
+        ) : (
+          <p className="text-gray-400">No document</p>
+        )}
       </div>
 
       {/* ⚡ ACTIONS */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* 💳 PAY RENT */}
-        <div className="bg-white p-6 rounded-2xl shadow flex flex-col justify-between hover:shadow-lg transition">
-          <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <CreditCard size={18} /> Pay Rent
-            </h3>
-            <p className="text-gray-500 text-sm">Secure and instant payment</p>
-          </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* 💳 PAYMENT */}
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <h3 className="font-semibold flex gap-2">
+            <CreditCard /> Pay Rent
+          </h3>
 
           <button
             onClick={handlePayment}
-            disabled={paying}
-            className={`mt-5 px-4 py-2 rounded-lg text-white transition ${
-              paying
+            disabled={isPaidThisMonth() || paying}
+            className={`mt-4 w-full py-2 rounded-lg text-white ${
+              isPaidThisMonth()
                 ? "bg-gray-400"
-                : "bg-green-600 hover:bg-green-700 hover:scale-105"
+                : "bg-green-600 hover:bg-green-700"
             }`}
           >
-            {paying ? "Processing..." : `Pay ₹ ${lease.rent_amount}`}
+            {isPaidThisMonth()
+              ? "Already Paid"
+              : paying
+                ? "Processing..."
+                : "Pay Now"}
           </button>
         </div>
 
         {/* 🛠 MAINTENANCE */}
-        <div className="bg-white p-6 rounded-2xl shadow flex flex-col justify-between hover:shadow-lg transition">
-          <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Wrench size={18} /> Maintenance
-            </h3>
-            <p className="text-gray-500 text-sm">Report issues quickly</p>
-          </div>
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <h3 className="font-semibold flex gap-2">
+            <Wrench /> Maintenance
+          </h3>
 
           <button
             onClick={() => navigate("/create-request")}
-            className="mt-5 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:scale-105 transition"
+            className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
           >
             Create Request
           </button>
         </div>
       </div>
 
-      {/* 💳 PAYMENT HISTORY */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Payment History</h3>
-
-        {payments.length === 0 ? (
-          <p className="text-gray-500 text-sm">No payments yet</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-gray-500 border-b">
-                <th className="py-2 text-left">Amount</th>
-                <th className="text-left">Date</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {payments.map((p) => (
-                <tr key={p._id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 font-medium text-green-600">
-                    ₹ {p.amount}
-                  </td>
-                  <td className="text-gray-500">
-                    {new Date(p.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
       {/* 📋 REQUESTS */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Maintenance Requests</h3>
+      <div className="bg-white p-6 rounded-2xl shadow">
+        <h3 className="font-semibold text-lg mb-4">Maintenance Requests</h3>
 
         {requests.length === 0 ? (
-          <p className="text-gray-500 text-sm">No requests yet</p>
+          <p className="text-gray-500">No requests yet</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-gray-500 border-b">
-                <th className="py-2 text-left">Title</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+          <div className="space-y-4">
+            {requests.map((r) => (
+              <div key={r._id} className="border p-4 rounded-xl hover:shadow">
+                <h4 className="font-semibold">{r.title}</h4>
 
-            <tbody>
-              {requests.map((r) => (
-                <tr key={r._id} className="border-b hover:bg-gray-50">
-                  <td className="py-3">{r.title}</td>
+                <p className="text-sm text-gray-500">{r.description}</p>
 
-                  <td>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        r.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : r.status === "In Progress"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                {/* 🖼 IMAGES */}
+                {r.files?.length > 0 && (
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {r.files.map((f, i) => {
+                      const fileUrl =
+                        typeof f === "string" ? f : f.url || f.path || "";
+
+                      return (
+                        <img
+                          key={i}
+                          src={getImageUrl(fileUrl)}
+                          alt="issue"
+                          onError={(e) => {
+                            e.target.src =
+                              "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d";
+                          }}
+                          className="h-16 w-16 object-cover rounded"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                <span className="text-xs mt-2 inline-block">{r.status}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// 🔹 REUSABLE CARD
+function Card({ title, value }) {
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow">
+      <p className="text-gray-500 text-sm">{title}</p>
+      <h2 className="text-xl font-bold mt-2">{value}</h2>
     </div>
   );
 }
