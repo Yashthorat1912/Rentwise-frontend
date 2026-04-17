@@ -164,7 +164,7 @@ function CreateRequest() {
                     {r.files.map((f, i) => (
                       <img
                         key={i}
-                        src={`http://localhost:5000/${f}`}
+                        src={`${process.env.REACT_APP_API_URL}/${f}`}
                         alt="issue"
                         className="w-20 h-20 object-cover rounded-lg border"
                       />

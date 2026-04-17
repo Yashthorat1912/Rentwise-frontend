@@ -127,7 +127,7 @@ function LandlordDashboard() {
                 {/* IMAGE */}
                 <div className="relative">
                   <img
-                    src={`http://localhost:5000/${p.image}`}
+                    src={`${process.env.REACT_APP_API_URL}/${p.image}`}
                     alt=""
                     className="h-48 w-full object-cover group-hover:scale-105 transition duration-300"
                   />
@@ -210,7 +210,7 @@ function LandlordDashboard() {
                 {r.files.map((file, index) => (
                   <img
                     key={index}
-                    src={`http://localhost:5000/uploads/${file}`}
+                    src={`${process.env.REACT_APP_API_URL}/uploads/${file}`}
                     className="h-20 w-20 object-cover rounded-lg border"
                     alt="request"
                   />

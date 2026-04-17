@@ -128,7 +128,7 @@ function TenantDashboard() {
             <p className="text-gray-500">Lease Document</p>
             {lease.lease_document_url ? (
               <a
-                href={`http://localhost:5000/${lease.lease_document_url}`}
+                href={`${process.env.REACT_APP_API_URL}/${lease.lease_document_url}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline font-medium"
