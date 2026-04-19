@@ -2,6 +2,7 @@ import { useState } from "react";
 import API from "../api/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { requestPermission, listenMessages } from "../notification";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -35,12 +36,14 @@ function Login() {
       // 🔥 NEW: ROLE VALIDATION
       if (role && user.role !== role) {
         alert(`Please login as ${role}`);
+        setLoading(false);
         return;
       }
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(user));
-
+      await requestPermission();
+      listenMessages();
       // ✅ Role-based navigation
       if (user.role === "landlord") {
         navigate("/landlord");
@@ -53,7 +56,6 @@ function Login() {
       setLoading(false);
     }
   };
-
   return (
     <div className="flex min-h-screen">
       {/* 🔵 LEFT SIDE (BRANDING) */}

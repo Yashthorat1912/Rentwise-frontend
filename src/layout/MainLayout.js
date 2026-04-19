@@ -11,6 +11,7 @@ import {
   Moon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import NotificationBell from "../components/NotificationBell";
 
 function MainLayout() {
   const navigate = useNavigate();
@@ -72,44 +73,46 @@ function MainLayout() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="flex h-screen bg-gray-100 dark:bg-[#0B0F19]">
       {/* 🔥 OVERLAY */}
       <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden transition-opacity
-        ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={() => setSidebarOpen(false)}
       />
 
       {/* 🔥 SIDEBAR */}
       <aside
         className={`fixed md:static z-50 h-full
-        bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl
-        border-r border-gray-200 dark:border-gray-800
-        shadow-xl
-        transform transition-all duration-300
-        ${collapsed ? "w-20" : "w-64"}
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0`}
+      bg-white dark:bg-[#0F172A]
+      border-r border-gray-200 dark:border-gray-800
+      shadow-lg
+      transition-all duration-300
+      ${collapsed ? "w-20" : "w-64"}
+      ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      md:translate-x-0`}
       >
         <div className="flex flex-col h-full justify-between">
           {/* TOP */}
           <div className="p-5">
-            <div className="flex justify-between items-center mb-10">
+            {/* LOGO */}
+            <div className="flex items-center justify-between mb-10">
               {!collapsed && (
-                <h2 className="text-xl font-bold tracking-wide bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-xl font-bold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
                   RentWise
                 </h2>
               )}
 
               <button
                 onClick={() => setCollapsed(!collapsed)}
-                className="text-gray-500 hover:text-blue-600 transition"
+                className="text-gray-400 hover:text-blue-600 transition"
               >
                 ☰
               </button>
             </div>
 
-            <nav className="space-y-1">
+            {/* NAV */}
+            <nav className="space-y-2">
               {menuItems.map(
                 (item) =>
                   (item.show === undefined || item.show) && (
@@ -119,18 +122,13 @@ function MainLayout() {
                         navigate(item.path);
                         setSidebarOpen(false);
                       }}
-                      className={`relative flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition-all group
-                      ${
-                        isActive(item.path)
-                          ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold"
-                          : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      }`}
+                      className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition-all
+                    ${
+                      isActive(item.path)
+                        ? "bg-blue-600 text-white shadow"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
                     >
-                      {/* ACTIVE BAR */}
-                      {isActive(item.path) && (
-                        <span className="absolute left-0 top-0 h-full w-1 bg-blue-600 rounded-r-lg"></span>
-                      )}
-
                       <item.icon size={18} />
                       {!collapsed && item.label}
                     </button>
@@ -139,13 +137,14 @@ function MainLayout() {
             </nav>
           </div>
 
-          {/* BOTTOM */}
+          {/* USER + ACTIONS */}
           <div className="p-4 border-t border-gray-200 dark:border-gray-800">
             {!collapsed && (
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center font-bold shadow">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center font-bold">
                   {user?.name?.charAt(0).toUpperCase()}
                 </div>
+
                 <div>
                   <p className="text-sm font-medium text-gray-800 dark:text-white">
                     {user?.name}
@@ -160,7 +159,7 @@ function MainLayout() {
             {/* DARK MODE */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="flex items-center gap-2 text-sm mb-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 transition"
+              className="flex items-center gap-2 text-sm mb-2 text-gray-500 hover:text-blue-600 transition"
             >
               {darkMode ? <Sun size={16} /> : <Moon size={16} />}
               {!collapsed && (darkMode ? "Light Mode" : "Dark Mode")}
@@ -178,11 +177,12 @@ function MainLayout() {
         </div>
       </aside>
 
-      {/* 🔥 MAIN */}
+      {/* 🔥 MAIN AREA */}
       <div className="flex-1 flex flex-col">
-        {/* TOPBAR */}
-        <header className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex justify-between items-center shadow-sm">
-          <div className="flex items-center gap-3">
+        {/* 🔥 TOPBAR */}
+        <header className="bg-white dark:bg-[#0F172A] border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex justify-between items-center">
+          {/* LEFT */}
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="md:hidden text-gray-700 dark:text-white"
@@ -196,32 +196,37 @@ function MainLayout() {
                   ? "Landlord Dashboard"
                   : "Tenant Dashboard"}
               </h1>
+
               <p className="text-sm text-gray-500">
-                Welcome back, {user?.name}
+                {new Date().toLocaleDateString()}
               </p>
             </div>
           </div>
 
           {/* RIGHT */}
           <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-sm text-gray-500">
-              {new Date().toLocaleDateString()}
-            </div>
+            {/* 🔔 NOTIFICATION */}
+            <NotificationBell />
 
-            <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center rounded-full shadow">
-              {user?.name?.charAt(0).toUpperCase()}
+            {/* USER */}
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center font-bold">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* CONTENT */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          <Outlet />
+        {/* 🔥 CONTENT */}
+        <main className="flex-1 p-6 overflow-y-auto bg-gray-50 dark:bg-[#0B0F19]">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
 
         {/* FOOTER */}
-        <footer className="bg-white/70 dark:bg-gray-900/70 backdrop-blur text-center py-3 text-xs text-gray-400 border-t border-gray-200 dark:border-gray-800">
-          © 2026 RentWise • Premium Property Platform
+        <footer className="text-center py-3 text-xs text-gray-400 border-t border-gray-200 dark:border-gray-800">
+          © 2026 RentWise • SaaS Property Platform
         </footer>
       </div>
     </div>
