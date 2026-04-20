@@ -11,13 +11,20 @@ export const requestPermission = async () => {
 
     if (permission === "granted") {
       const token = await getToken(messaging, {
-        vapidKey: import.meta.env.REACT_APP_FIREBASE_VAPID_KEY,
+        // ✅ FIXED ENV
+        vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY,
       });
 
       console.log("FCM Token:", token);
 
       if (token) {
-        await API.post("/notifications/save-token", { token });
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        // ✅ SEND USER_ID ALSO
+        await API.post("/notifications/save-token", {
+          token,
+          user_id: user?._id,
+        });
       }
     }
   } catch (err) {
