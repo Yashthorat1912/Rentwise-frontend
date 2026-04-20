@@ -32,19 +32,31 @@ function Login() {
       }
 
       const user = res.data.user;
+      const token = res.data.token;
 
-      // 🔥 NEW: ROLE VALIDATION
+      // ✅ ROLE VALIDATION
       if (role && user.role !== role) {
         alert(`Please login as ${role}`);
         setLoading(false);
         return;
       }
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(user));
-      await requestPermission();
+      // ✅ IMPORTANT FIX: SAVE TOKEN PROPERLY
+      localStorage.setItem("token", token);
+
+      // ✅ ALSO SAVE TOKEN INSIDE USER (VERY IMPORTANT)
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...user,
+          token, // 🔥 THIS FIXES 401
+        }),
+      );
+
+      await requestPermission(); // save FCM token
       listenMessages();
-      // ✅ Role-based navigation
+
+      // ✅ NAVIGATION
       if (user.role === "landlord") {
         navigate("/landlord");
       } else {
@@ -56,9 +68,10 @@ function Login() {
       setLoading(false);
     }
   };
+
   return (
     <div className="flex min-h-screen">
-      {/* 🔵 LEFT SIDE (BRANDING) */}
+      {/* LEFT SIDE */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 items-center justify-center text-white p-10">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">RentWise</h1>
@@ -74,10 +87,9 @@ function Login() {
         </div>
       </div>
 
-      {/* ⚪ RIGHT SIDE (FORM) */}
+      {/* RIGHT SIDE */}
       <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-50 px-4">
         <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl">
-          {/* TITLE */}
           <h2 className="text-3xl font-bold text-center text-gray-800">
             {role
               ? role === "landlord"
@@ -94,7 +106,7 @@ function Login() {
             <input
               type="email"
               placeholder="example@gmail.com"
-              className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full mt-1 p-3 border rounded-lg"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -106,22 +118,21 @@ function Login() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+              className="w-full mt-1 p-3 border rounded-lg pr-10"
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            {/* 👁 ICON BUTTON */}
             <span
-              className="absolute right-3 top-[38px] cursor-pointer text-gray-500 hover:text-blue-600 transition"
+              className="absolute right-3 top-[38px] cursor-pointer text-gray-500"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
-          {/* FORGOT PASSWORD */}
+          {/* FORGOT */}
           <div
-            className="text-right text-sm text-blue-600 mb-4 cursor-pointer hover:underline"
+            className="text-right text-sm text-blue-600 mb-4 cursor-pointer"
             onClick={() => navigate("/forgot-password")}
           >
             Forgot Password?
@@ -131,25 +142,18 @@ function Login() {
           <button
             onClick={handleLogin}
             disabled={loading}
-            className={`w-full py-3 rounded-lg text-white font-semibold transition ${
+            className={`w-full py-3 rounded-lg text-white ${
               loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {loading ? "Logging in..." : "Login"}
           </button>
 
-          {/* DIVIDER */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="px-3 text-gray-400 text-sm">OR</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
-
           {/* REGISTER */}
           <p className="text-center text-sm mt-6 text-gray-500">
             Don’t have an account?{" "}
             <span
-              className="text-blue-600 cursor-pointer hover:underline"
+              className="text-blue-600 cursor-pointer"
               onClick={() => navigate("/register")}
             >
               Register

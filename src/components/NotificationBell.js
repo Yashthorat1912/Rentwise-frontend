@@ -9,7 +9,7 @@ function NotificationBell() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ FETCH + REALTIME LISTENER
+  // ✅ FETCH + REALTIME
   useEffect(() => {
     fetchNotifications();
 
@@ -34,11 +34,11 @@ function NotificationBell() {
     }
   };
 
-  // ✅ MARK ALL AS READ (OPTIMISTIC UPDATE)
+  // ✅ MARK ALL AS READ
   const markAllAsRead = async () => {
     try {
-      // instant UI update
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      // 🔥 instant UI update
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
       await API.put("/notifications/read");
     } catch (err) {
@@ -46,7 +46,7 @@ function NotificationBell() {
     }
   };
 
-  // ✅ HANDLE CLICK NAVIGATION
+  // ✅ HANDLE CLICK
   const handleClick = (n) => {
     if (!n.meta) return;
 
@@ -59,10 +59,10 @@ function NotificationBell() {
     }
   };
 
-  // ✅ UNREAD COUNT
-  const unread = notifications.filter((n) => !n.isRead).length;
+  // ❗ FIX: backend uses "read" not "isRead"
+  const unread = notifications.filter((n) => !n.read).length;
 
-  // ✅ TYPE COLORS
+  // ✅ STYLE
   const getTypeStyle = (type) => {
     switch (type) {
       case "CHAT_MESSAGE":
@@ -98,7 +98,7 @@ function NotificationBell() {
         )}
       </button>
 
-      {/* 🔽 DROPDOWN */}
+      {/* DROPDOWN */}
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl rounded-xl border z-50 max-h-[400px] overflow-y-auto">
           <div className="p-3 border-b font-semibold sticky top-0 bg-white">
@@ -112,8 +112,8 @@ function NotificationBell() {
               <div
                 key={n._id}
                 onClick={() => handleClick(n)}
-                className={`p-3 border-b text-sm cursor-pointer hover:bg-gray-50 transition ${
-                  !n.isRead ? "bg-gray-100" : ""
+                className={`p-3 border-b text-sm cursor-pointer hover:bg-gray-50 ${
+                  !n.read ? "bg-gray-100" : ""
                 } ${getTypeStyle(n.type)}`}
               >
                 <p className="font-medium">{n.title}</p>
