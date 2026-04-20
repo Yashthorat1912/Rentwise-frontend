@@ -1,13 +1,9 @@
 export const getImageUrl = (path) => {
-  if (!path || path === "null") {
+  if (!path) {
     return "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d";
   }
 
-  // ✅ Cloudinary / external URL
-  if (path.startsWith("http")) {
-    return path;
-  }
+  const fixedPath = path.replace(/\\/g, "/");
 
-  // ✅ fallback (old local uploads)
-  return `${process.env.REACT_APP_API_URL}/${path}`;
+  return `${process.env.REACT_APP_API_URL}/${fixedPath}`;
 };
