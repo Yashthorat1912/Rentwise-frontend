@@ -10,11 +10,7 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
-// ✅ Initialize
 const app = initializeApp(firebaseConfig);
-
-// ✅ Messaging
 export const messaging = getMessaging(app);
-
 // ✅ IMPORTANT: Export app
 export { app };
