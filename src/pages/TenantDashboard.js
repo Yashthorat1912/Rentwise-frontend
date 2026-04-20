@@ -198,23 +198,29 @@ function TenantDashboard() {
                 {/* 🖼 IMAGES */}
                 {r.files?.length > 0 && (
                   <div className="flex gap-2 mt-3 flex-wrap">
-                    {r.files.map((f, i) => {
-                      const fileUrl =
-                        typeof f === "string" ? f : f.url || f.path || "";
+                    {r.files
+                      ?.filter((f) => f) // ✅ REMOVE null/undefined
+                      .map((f, i) => {
+                        const fileUrl =
+                          typeof f === "string"
+                            ? f
+                            : f?.url || f?.path || f?.secure_url || "";
 
-                      return (
-                        <img
-                          key={i}
-                          src={getImageUrl(fileUrl)}
-                          alt="issue"
-                          onError={(e) => {
-                            e.target.src =
-                              "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d";
-                          }}
-                          className="h-16 w-16 object-cover rounded"
-                        />
-                      );
-                    })}
+                        if (!fileUrl) return null; // ✅ EXTRA SAFETY
+
+                        return (
+                          <img
+                            key={i}
+                            src={getImageUrl(fileUrl)}
+                            alt="issue"
+                            onError={(e) => {
+                              e.target.src =
+                                "https://images.unsplash.com/photo-1560185007-c5ca9d2c014d";
+                            }}
+                            className="h-16 w-16 object-cover rounded"
+                          />
+                        );
+                      })}
                   </div>
                 )}
 
