@@ -1,7 +1,15 @@
 {
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/favicon.ico", "dest": "/favicon.ico" },
-    { "src": "/(.*)", "dest": "/" }
+    {
+      "src": "/firebase-messaging-sw.js",
+      "headers": {
+        "Content-Type": "application/javascript"
+      },
+      "dest": "/firebase-messaging-sw.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
