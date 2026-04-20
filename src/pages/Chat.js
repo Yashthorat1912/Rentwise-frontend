@@ -1,14 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { io } from "socket.io-client";
 import API from "../api/api";
-
-const socket = io(
-  process.env.REACT_APP_SOCKET_URL ||
-    "https://rentwise-backend-5ac6.onrender.com",
-  {
-    transports: ["polling"], // 🔥 IMPORTANT FIX
-  },
-);
+import socket from "../socket";
 
 function Chat() {
   const [message, setMessage] = useState("");
@@ -27,7 +19,6 @@ function Chat() {
       const leaseRes = await API.get("/leases/my");
       const leaseData = leaseRes.data;
 
-      // ✅ tenant = object, landlord = array
       const lease = Array.isArray(leaseData) ? leaseData[0] : leaseData;
 
       if (!lease || !lease._id) {
@@ -44,7 +35,7 @@ function Chat() {
     }
   };
 
-  // ✅ SOCKET
+  // ✅ SOCKET (FIXED)
   useEffect(() => {
     if (!leaseId) return;
 
@@ -54,7 +45,9 @@ function Chat() {
       setMessages((prev) => [...prev, data]);
     });
 
-    return () => socket.off("receive_message");
+    return () => {
+      socket.off("receive_message");
+    };
   }, [leaseId]);
 
   // ✅ AUTO SCROLL
@@ -76,7 +69,6 @@ function Chat() {
 
   return (
     <div className="flex flex-col h-[85vh] bg-white rounded-2xl shadow-lg">
-      {/* HEADER */}
       <div className="bg-blue-600 text-white px-5 py-4 rounded-t-2xl">
         <h2 className="text-lg font-semibold">Conversation</h2>
         <p className="text-xs opacity-80">
@@ -86,7 +78,6 @@ function Chat() {
         </p>
       </div>
 
-      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-center text-gray-400 mt-10">No messages yet 👋</p>
@@ -128,7 +119,6 @@ function Chat() {
         <div ref={bottomRef}></div>
       </div>
 
-      {/* INPUT */}
       <div className="p-3 border-t flex gap-2">
         <input
           className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

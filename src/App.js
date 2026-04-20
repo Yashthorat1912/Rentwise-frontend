@@ -15,7 +15,18 @@ import PrivateRoute from "./components/PrivateRoute";
 import AddProperty from "./pages/AddProperty";
 import CreateLease from "./pages/CreateLease";
 
+import { useEffect } from "react";
+import socket from "./socket";
+
 function App() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  useEffect(() => {
+    if (user?._id) {
+      socket.emit("join", user._id); // 🔥 IMPORTANT (notifications)
+    }
+  }, [user]);
+
   return (
     <Router>
       <Routes>
